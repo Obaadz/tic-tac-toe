@@ -1,36 +1,41 @@
 import React, { useState } from 'react';
+import styled from 'styled-components';
 import Square from './Square';
+
+const StartBtn = styled.div`
+  text-align: center;
+  color: #fff;
+  margin-top: 20px;
+  cursor: pointer;
+
+  transition: color 0.3s;
+  &:hover {
+    color: #9d9d9d;
+  }
+`;
 
 const Board = () => {
   const [board, setBoard] = useState(Array(9).fill(null));
   const [isXTurn, setIsXTurn] = useState(true);
-  const winner = getWinner();
+  const [steps, setSteps] = useState(0);
+  const winner = getWinner(board);
 
-  function getWinner() {
-    const winCalculation = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
-
-    for (let i = 0; i < winCalculation.length; i++) {
-      const [a, b, c] = winCalculation[i];
-      if (board[a] && board[a] === board[b] && board[a] === board[c])
-        return board[a];
-    }
-    return null;
+  function handleNewGame() {
+    setBoard(Array(9).fill(null));
+    setIsXTurn(true);
+    setSteps(0);
   }
 
   function handleClick(position) {
-    const old_board = board;
-    old_board[position] = isXTurn ? 'X' : 'O';
+    // if there is a winner or this position is not empty, then return.
+    if (board[position] || winner) return;
 
+    const new_board = board;
+    new_board[position] = isXTurn ? 'X' : 'O';
+
+    setBoard(new_board);
     setIsXTurn(isXTurn => !isXTurn);
+    setSteps(steps + 1);
   }
 
   function renderSquare(position) {
@@ -48,12 +53,13 @@ const Board = () => {
         <span>
           {winner
             ? `winner is: ${winner}`
+            : steps === 9
+            ? `there is no winner`
             : `next player is: ${isXTurn ? 'X' : 'O'}`}
         </span>
       </div>
 
       <div className="board">
-        {console.log(board)}
         <div className="board-row">
           {renderSquare(0)}
           {renderSquare(1)}
@@ -71,22 +77,30 @@ const Board = () => {
           {renderSquare(7)}
           {renderSquare(8)}
         </div>
+        <StartBtn onClick={handleNewGame}>Start New Game</StartBtn>
       </div>
     </>
   );
 };
 
-export default Board;
+function getWinner(board) {
+  const winCalculation = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
 
-/*
-board with 9 elements done
-next player is: x then o
-if
-[a, any, any, a, any, any, a, any, any] or
-[any, a, any, any, a, any, any, a, any] or
-[any, any, a, any, any, a, any, any, a] or
-[a, any, any, any, a, any, any, any, a] or
-[any, any, a, any, a, any a, any, any]
-then
-there is a winner.
-*/
+  for (let i = 0; i < winCalculation.length; i++) {
+    const [a, b, c] = winCalculation[i];
+    if (board[a] && board[a] === board[b] && board[a] === board[c])
+      return board[a];
+  }
+  return null;
+}
+
+export default Board;
